@@ -1,0 +1,8 @@
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet]
+"ActiveWebProbeContent"="Microsoft NCSI"
+"ActiveWebProbeContentV6"="Microsoft NCSI"
+"ActiveWebProbeHost"="www.msftncsi.comI"
+"ActiveWebProbeHostV6"="ipv6.msftncsi.com"
+"ActiveWebProbePath"="ncsi.txt"
+"ActiveWebProbePathV6"="ncsi.txt"
+"EnableActiveProbing"=dword:00000001
