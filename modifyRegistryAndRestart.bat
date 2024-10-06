@@ -14,7 +14,7 @@ echo. >> temp.reg
 echo [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet] >> temp.reg
 echo "ActiveWebProbeContent"="Microsoft NCSI" >> temp.reg
 echo "ActiveWebProbeContentV6"="Microsoft NCSI" >> temp.reg
-echo "ActiveWebProbeHost"="www.msftncsi.comI" >> temp.reg
+echo "ActiveWebProbeHost"="www.msftncsi.com" >> temp.reg
 echo "ActiveWebProbeHostV6"="ipv6.msftncsi.com" >> temp.reg
 echo "ActiveWebProbePath"="ncsi.txt" >> temp.reg
 echo "ActiveWebProbePathV6"="ncsi.txt" >> temp.reg
