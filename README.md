@@ -7,10 +7,13 @@ win10电脑能上网但是图标显示未连接到网络（显示灰色小地球
 3. Run the `modifyRegistryAndRestart.bat` in admin.
 4. Restart the `Windows network adapter` in `Network & Internet settings`
 
+---
 More detail and reference:
-https://blog.csdn.net/qq_45830323/article/details/129681354
+> https://blog.csdn.net/Ronchy_2000/article/details/142069148
+<br>and<br>
+> https://blog.csdn.net/qq_45830323/article/details/129681354
 
-
+---
 简单说说，从Windows 10 1607版本开始，判断网络状态是通过让计算机访问这个网址：http://www.msftconnecttest.com/connecttest.txt，络连通情况下，浏览器访问这个URL返回的结果是文本Microsoft Connect Test。结果一致，网络图标就会是那个有网络的状态。
 
 当然，不管正不正常，都不影响正常上网，它只是做了一次网络连通检测。我们完全可以把这个网址的dns解析切换成自己的私服ip，开放一个同样文案的文本即可。照样可以检测网络状态。
