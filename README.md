@@ -2,10 +2,14 @@
 win10电脑能上网但是图标显示未连接到网络（显示灰色小地球）的解决方法，这个问题应该只有中国大陆有。。。
 
 ## How to use
-1. Download this repo.
-2. Unzip the file.
-3. Run the `modifyRegistryAndRestart.bat` in admin.
-4. Restart the `Windows network adapter` in `Network & Internet settings`
+You can directly download the bat from release. <br>
+1. Run the `modifyRegistryAndRestart.bat` in admin.<br>
+2. Restart the `Windows network adapter` in `Network & Internet settings<br>
+
+~1. Download this repo.~<br>
+~2. Unzip the file.~<br>
+~3. Run the `modifyRegistryAndRestart.bat` in admin.~ <br>
+~4. Restart the `Windows network adapter` in `Network & Internet settings`~ <br>
 
 ---
 More detail and reference:
