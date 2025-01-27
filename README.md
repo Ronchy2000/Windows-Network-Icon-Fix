@@ -3,7 +3,7 @@ win10电脑能上网但是图标显示未连接到网络（显示灰色小地球
 
 ## How to use
 You can directly download the bat from release. <br>
-1. Run the `modifyRegistryAndRestart.bat` in admin.<br>
+1. Run the `modifyRegistryAndRestart.bat` with admin.<br>
 2. Restart the `Windows network adapter` in `Network & Internet settings`<br>
 
 ~1. Download this repo.~<br>
