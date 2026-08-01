@@ -1,120 +1,108 @@
-[🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
+# Windows 11：让联网 Wi-Fi 显示“无 Internet”图标
 
-<a id="chinese"><a>
-# Windows 10/11 网络图标修复工具
+> 本分支专门实现“实际可以上网，但任务栏故意显示灰色小地球/无 Internet”的需求。若你是要**修复**错误的灰色地球图标，请返回 [`main` 分支](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/main)。
 
-![Windows](https://img.shields.io/badge/Windows-10/11-blue) ![状态](https://img.shields.io/badge/状态-可用-brightgreen) ![类型](https://img.shields.io/badge/类型-注册表修复-orange) ![许可](https://img.shields.io/badge/许可-MIT-green)
+适用场景：惠普战 99 Ultra 等运行 Windows 11 的电脑。该功能依赖 Windows 自带的 NCSI（网络连接状态指示器），与电脑品牌和无线网卡型号无关。
 
-## 问题概述
-本仓库提供了一个解决方案，用于修复Windows 10系统中网络图标错误显示为"未连接"（灰色小地球）的问题，即使实际上可以正常访问互联网。**此问题主要在中国大陆地区出现。**
+## 先看结论
 
-## 快速使用
-> **注意**：此脚本会在执行过程中重启网络适配器，请确保执行前没有重要的网络传输任务正在进行。
+- 运行 [`显示灰色地球图标.bat`](./显示灰色地球图标.bat)，重启 Windows 后，Wi-Fi 仍能正常传输数据，但系统会把连接标记为“无 Internet”。
+- 运行 [`恢复正常联网图标.bat`](./恢复正常联网图标.bat)，重启 Windows 后恢复系统正常联网判断。
+- 第一个脚本会在同目录自动创建 `backups` 文件夹并备份注册表；第二个脚本会优先使用最近一次备份精确恢复。
+- 两个脚本都必须右键选择“以管理员身份运行”。
 
-直接从[**Release**](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases)页面下载批处理文件：
-1. **以管理员身份**运行`modifyRegistryAndRestart.bat`
-2. 在"网络和Internet设置"中重启"Windows网络适配器" （如果不会的话，关闭计算机重启即可）
+> [!IMPORTANT]
+> 这只是改变 Windows 对网络状态的判断，并不会真的禁止联网、隐藏流量或提升隐私。不同 Windows 11 版本、主题和任务栏样式可能显示为灰色地球、地球叠加禁止符号，或其他“无 Internet”样式，无法保证像素级一致。
+
+## 使用教程
+
+### 一、切换为“表面未联网”
+
+1. 下载本分支全部文件，或至少把两个 `.bat` 文件放在同一个可写文件夹中。
+2. 右键 [`显示灰色地球图标.bat`](./显示灰色地球图标.bat)，选择“以管理员身份运行”。
+3. 看到“注册表修改完成”后，正常重启电脑。
+4. 重启后连接 Wi-Fi。浏览器等普通联网程序仍可访问网络，任务栏应显示“无 Internet”状态。
+
+脚本可以重复运行。只要上一次修改尚未恢复，它就会复用第一次生成的原始备份，不会用已经修改过的注册表覆盖备份。
+
+### 二、恢复正常联网图标
+
+1. 不要移动或删除脚本旁边的 `backups` 文件夹。
+2. 右键 [`恢复正常联网图标.bat`](./恢复正常联网图标.bat)，选择“以管理员身份运行”。
+3. 脚本会恢复最近一次修改前的注册表值，并保留历史备份文件。
+4. 正常重启电脑。
+
+若备份文件确实丢失，恢复脚本会采用安全回退：重新启用 NCSI 主动探测，并删除本工具添加的两项策略值；它不会重写探测网址等其他 NCSI 配置。
+
+## 注册表备份说明
+
+首次运行切换脚本时，会生成类似目录：
+
+```text
+backups/
+├── latest.txt
+└── 20260801-153000/
+    ├── Internet.reg
+    ├── Policy.reg              # 原策略键存在时才有
+    └── policy-key-absent.flag  # 原策略键不存在时才有
+```
+
+- `Internet.reg`：备份 `HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet`。
+- `Policy.reg`：如果 NCSI 策略键原本存在，则完整备份该键。
+- `policy-key-absent.flag`：表示策略键原本不存在。
+- `latest.txt`：记录当前待恢复的备份目录。恢复成功后会删除这个指针，但时间戳备份仍保留。
+
+建议恢复正常后再移动或清理历史备份。备份含本机系统配置，不建议上传到公开仓库、网盘或聊天群。
 
 ## 工作原理
 
-### 问题成因
-从Windows 10 1607版本开始，系统通过访问`http://www.msftconnecttest.com/connecttest.txt`来判断网络连接状态。正常情况下，访问该URL会返回文本"Microsoft Connect Test"，系统据此显示正常的网络连接图标。
+Windows 11 通过 NCSI 的主动探测和被动探测判断连接是否具备 Internet 能力。脚本修改三项值：
 
-近期，由于中国大陆的网络运营商(ISP)对某些国外IP地址实施了限制，导致此连接测试失败，系统误判为网络未连接。
+| 注册表位置 | 值 | 修改后数据 | 用途 |
+| --- | --- | ---: | --- |
+| `HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet` | `EnableActiveProbing` | `0` | 关闭本地主动探测 |
+| `HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator` | `NoActiveProbe` | `1` | 通过策略关闭主动探测 |
+| 同上 | `DisablePassivePolling` | `1` | 关闭被动探测，避免实际流量把图标重新判为联网 |
 
-### 解决方案
-Windows 10 1607之前版本使用的URL是`http://www.msftconnecttest.com/ncsi.txt`，该URL目前仍然有效且未被ISP屏蔽。本工具通过修改注册表，将系统配置恢复为使用这个旧版URL。
+因此，IP、DNS、路由和 Wi-Fi 连接本身都没有被禁用；NCSI 只是无法确认“Internet 可用”，任务栏便显示本地连接/无 Internet 状态。
 
-## 技术细节
+## 可能的副作用
 
-注册表修改内容：
-- 修改检测URL为`http://www.msftconnecttest.com/ncsi.txt`
-- `EnableActiveProbing`字段：
-  - 值为1：开启网络探测
-  - 值为0：关闭网络探测
+NCSI 状态不只供任务栏使用。Microsoft Store、Outlook、Teams、Windows Update、VPN 客户端和部分第三方软件可能根据它判断“离线”，即使浏览器仍可上网。出现这些情况时，请运行恢复脚本并重启。
 
-## 常见问题
+此外还需注意：
 
-### 此问题对系统有什么影响？
-- 网络图标显示异常（灰色小地球）
-- Microsoft Store和部分微软应用可能无法正常使用
-- 系统可能提示"无Internet访问权限"
+- 公司域策略或设备管理软件可能覆盖这些注册表值。
+- Windows 大版本更新可能重置设置，需要重新运行脚本。
+- 此方案不适合需要 Microsoft Store、系统更新或企业网络组件始终正确识别联网状态的电脑。
+- 更改后若图标没有立即变化，必须重启；仅重启资源管理器通常不够。
 
-### 使用此工具有风险吗？
-> 备份与恢复:
->打开文件 -> 网图标注册表(备份).png -> 修改注册表 -> 重启网络适配器
+## 检查当前状态
 
-本工具仅修改Windows网络连接检测的URL配置，不会影响系统安全性或稳定性。如有顾虑，可以手动备份注册表后再使用。
+以管理员身份打开 PowerShell，执行：
 
+```powershell
+Get-NetConnectionProfile |
+    Format-Table Name, InterfaceAlias, IPv4Connectivity, IPv6Connectivity
+```
 
-### 为什么我的系统突然出现这个问题？
-系统更新后可能会重置网络连接检测的设置。即使禁用了Windows Update，系统在某些情况下仍可能自动更新组件。
+启用本功能后，连接仍存在，但 `IPv4Connectivity`/`IPv6Connectivity` 通常不会显示为 `Internet`。恢复并重启后，应重新显示 `Internet`。
 
-## 参考资料
-- [Windows 10网络图标显示问题解决方案][ref1]
-- [Windows网络连接检测机制分析][ref2]
+也可以检查本工具涉及的值：
 
-[release-link]: https://github.com/yourusername/repo-name/releases
-[ref1]: https://blog.csdn.net/Ronchy_2000/article/details/142069148
-[ref2]: https://blog.csdn.net/qq_45830323/article/details/129681354
+```powershell
+Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet' `
+    -Name EnableActiveProbing
 
----
-[🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
+Get-ItemProperty 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\NetworkConnectivityStatusIndicator' `
+    -Name NoActiveProbe, DisablePassivePolling -ErrorAction SilentlyContinue
+```
 
-<a id="english"><a>
-# Windows 10 Network Icon Fix Tool
+## 官方资料
 
-![Windows](https://img.shields.io/badge/Windows-10/11-blue) ![状态](https://img.shields.io/badge/状态-可用-brightgreen) ![类型](https://img.shields.io/badge/类型-注册表修复-orange) ![许可](https://img.shields.io/badge/许可-MIT-green)
+- [Microsoft：Network Connection Status Indicator (NCSI) troubleshooting guidance](https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/troubleshoot-ncsi-guidance)
+- [Microsoft：NCSI overview](https://learn.microsoft.com/en-us/windows-server/networking/ncsi/ncsi-overview)
+- [Microsoft：通过注册表关闭 NCSI 主动/被动探测及相关风险](https://learn.microsoft.com/en-us/troubleshoot/windows-client/networking/internet-explorer-edge-open-connect-corporate-public-network)
 
-## Problem Overview
-This repository provides a solution for fixing the Windows 10 issue where the network icon incorrectly shows as "disconnected" (gray globe icon) even though you can successfully access the Internet. **This problem primarily occurs in mainland China.**
-
-## Quick Usage
-> **Note**: This script will restart your network adapter during execution. Please ensure no important network transfers are in progress before running it.
-
-Download the batch file directly from the [**Release**](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases) page:
-1. Run `modifyRegistryAndRestart.bat` with administrator privileges
-2. Restart the "Windows network adapter" in "Network & Internet settings" (If you don't know how to do this, simply restart your computer)
-
-## How It Works
-
-### Cause of the Problem
-Since Windows 10 version 1607, the system determines network status by accessing `http://www.msftconnecttest.com/connecttest.txt`. Under normal circumstances, accessing this URL returns the text "Microsoft Connect Test", and the system displays the normal network connection icon accordingly.
-
-Recently, due to restrictions implemented by mainland China's Internet Service Providers (ISPs) on certain foreign IP addresses, this connection test fails, causing the system to incorrectly identify the network as disconnected.
-
-### Solution
-Windows 10 versions prior to 1607 used the URL `http://www.msftconnecttest.com/ncsi.txt`, which is still effective and not blocked by ISPs. This tool modifies the registry to restore the system configuration to use this older URL.
-
-## Technical Details
-
-Registry modifications:
-- Changes the detection URL to `http://www.msftconnecttest.com/ncsi.txt`
-- `EnableActiveProbing` field:
-  - Value 1: Enable network probing
-  - Value 0: Disable network probing
-
-## Frequently Asked Questions
-
-### How does this issue affect my system?
-- Abnormal network icon display (gray globe)
-- Microsoft Store and some Microsoft applications may not function properly
-- System may indicate "No Internet access"
-
-### Is there any risk in using this tool?
-> Backup and Recovery:
-> Open file -> Network Icon Registry (Backup).png -> Modify registry -> Restart network adapter
-
-This tool only modifies the URL configuration for Windows network connection detection and will not affect system security or stability. If concerned, you can manually backup the registry before using it.
-
-### Why did this problem suddenly appear on my system?
-System updates may reset network connection detection settings. Even if Windows Update is disabled, the system may still automatically update components under certain circumstances.
-
-## References
-- [Windows 10 Network Icon Display Problem Solution][ref1]
-- [Windows Network Connection Detection Mechanism Analysis][ref2]
-
-[release-link]: https://github.com/yourusername/repo-name/releases
-[ref1]: https://blog.csdn.net/Ronchy_2000/article/details/142069148
-[ref2]: https://blog.csdn.net/qq_45830323/article/details/129681354
-
+> [!WARNING]
+> Microsoft 不建议在一般故障排查中关闭 NCSI，因为系统组件和应用可能依赖它。本分支是针对“明确需要故意显示离线状态”的特殊用途；不再需要时请及时恢复。
