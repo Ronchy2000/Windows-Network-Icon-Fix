@@ -1,5 +1,10 @@
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
+> [!TIP]
+> 如果你需要相反效果——**实际可以上网，但故意让 Windows 11 显示灰色小地球/无 Internet 图标**——请前往 [`fake-offline-icon` 专用分支](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon)。该分支包含启用脚本、恢复脚本、注册表自动备份和完整教程。
+
+> Want the opposite behavior—working Internet with an intentional “No Internet” taskbar icon? See the dedicated [`fake-offline-icon` branch](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon), including enable/restore scripts, automatic registry backup, and instructions.
+
 <a id="chinese"><a>
 # Windows 10/11 网络图标修复工具
 
@@ -117,4 +122,3 @@ System updates may reset network connection detection settings. Even if Windows 
 [release-link]: https://github.com/yourusername/repo-name/releases
 [ref1]: https://blog.csdn.net/Ronchy_2000/article/details/142069148
 [ref2]: https://blog.csdn.net/qq_45830323/article/details/129681354
-
