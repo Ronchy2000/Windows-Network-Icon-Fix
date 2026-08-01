@@ -2,7 +2,7 @@
 
 > 本分支专门实现“实际可以上网，但任务栏故意显示灰色小地球/无 Internet”的需求。若你是要**修复**错误的灰色地球图标，请返回 [`main` 分支](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/main)。
 
-适用场景：惠普战 99 Ultra 等运行 Windows 11 的电脑。该功能依赖 Windows 自带的 NCSI（网络连接状态指示器），与电脑品牌和无线网卡型号无关。
+适用场景：运行 Windows10 / Windows 11 的电脑。该功能依赖 Windows 自带的 NCSI（网络连接状态指示器），与电脑品牌和无线网卡型号无关。
 
 ## 先看结论
 
