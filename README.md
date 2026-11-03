@@ -1,5 +1,9 @@
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
+**[点击这里进入下载页面：灰色地球图标修复版 v2.0.0](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases/tag/v2.0.0)**
+
+不熟悉 GitHub 的用户：打开上面的链接，在页面下方的 **Assets（附件）** 中点击 **`Windows-Network-Icon-Fix-v2.0.0.zip`** 下载。下载后右键 ZIP，选择“全部解压缩”，再按下方步骤运行。无需下载源码或安装开发工具。
+
 > 如果你需要**实际可以上网，但故意显示灰色地球/无 Internet 图标**，请使用 [`fake-offline-icon` 专用分支](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon)。
 >
 > For working Internet with an intentional “No Internet” icon, use the [`fake-offline-icon` branch](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon).
@@ -11,13 +15,13 @@
 
 ## 使用方法
 
-1. 下载最新的 [`modifyRegistryAndRestart.bat`](https://raw.githubusercontent.com/Ronchy2000/Windows-Network-Icon-Fix/refs/heads/main/modifyRegistryAndRestart.bat)，保存为 `.bat` 文件，也可以下载仓库 ZIP 后解压使用。不要保存 GitHub 网页或另存成 `.bat.txt`。
-2. 右键文件，选择 **以管理员身份运行**，允许 UAC 提示。窗口顶部应显示 **2.0.0**。
+1. **[点击进入 Release 下载页面](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases/tag/v2.0.0)**，展开 **Assets（附件）**，点击 **`Windows-Network-Icon-Fix-v2.0.0.zip`**。不要选择 `Source code`，那是提供给开发者的源码包。
+2. 右键下载好的 ZIP，选择“全部解压缩”。打开解压后的文件夹，右键 `modifyRegistryAndRestart.bat`，选择 **以管理员身份运行**，允许 UAC 提示。窗口顶部应显示 **2.0.0**。不要直接在压缩包内运行。
 3. 查看执行结果。提示“注册表修改并校验成功”后，重启电脑或手动重新连接网络，再观察图标。
 
 仍然只需一个 BAT，不需要另外下载 PowerShell 脚本；使用 Windows 10/11 自带的 Windows PowerShell 5.1。**新版不再自动禁用网卡**，Wi-Fi、英文名称和改名后的网卡均无需修改脚本。
 
-[Release 页面](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases)中的附件需要维护者单独更新，不会随 main 分支代码自动变化。旧附件没有版本号和诊断日志；排查本次问题时请先使用上面的最新脚本。
+上面的链接对应 `main` 分支的 **v2.0.0 修复版**，包含新版脚本和使用说明。旧的 `bat` Release 是历史版本，请使用本页链接下载。
 
 ## 新版会做什么
 
@@ -89,11 +93,11 @@ For computers that **can access the Internet while Windows shows a gray globe or
 
 ## Usage
 
-1. Download the current [`modifyRegistryAndRestart.bat`](https://raw.githubusercontent.com/Ronchy2000/Windows-Network-Icon-Fix/refs/heads/main/modifyRegistryAndRestart.bat), or download and extract the repository ZIP. Save the actual BAT file, rather than the GitHub HTML page or a `.bat.txt` file.
-2. Right-click, choose **Run as administrator**, and approve UAC. The header should show **2.0.0**.
+1. **[Click here to open the v2.0.0 download page](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases/tag/v2.0.0)**. Under **Assets**, download **`Windows-Network-Icon-Fix-v2.0.0.zip`**. Choose this ready-to-use package instead of `Source code`.
+2. Right-click the ZIP and choose **Extract All**. In the extracted folder, right-click `modifyRegistryAndRestart.bat`, choose **Run as administrator**, and approve UAC. The header should show **2.0.0**. Extract the files before running them.
 3. Once the script reports a verified registry update, restart Windows or reconnect the network manually and check the icon.
 
-This is a single BAT using built-in Windows PowerShell 5.1. **It no longer disables network adapters automatically**, and works without assuming an adapter named “以太网”. Published [Release assets](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases) must be updated separately; old downloads do not gain fixes when main changes.
+This is a single BAT using built-in Windows PowerShell 5.1. **It no longer disables network adapters automatically**, and works without assuming an adapter named “以太网”. The linked v2.0.0 release packages the updated `main` branch script and instructions. The older `bat` release is retained for history.
 
 ## Behavior
 
