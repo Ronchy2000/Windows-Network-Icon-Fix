@@ -1,124 +1,143 @@
 [🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
-> [!TIP]
-> 如果你需要相反效果——**实际可以上网，但故意让 Windows 11 显示灰色小地球/无 Internet 图标**——请前往 [`fake-offline-icon` 专用分支](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon)。该分支包含启用脚本、恢复脚本、注册表自动备份和完整教程。
+> 如果你需要**实际可以上网，但故意显示灰色地球/无 Internet 图标**，请使用 [`fake-offline-icon` 专用分支](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon)。
+>
+> For working Internet with an intentional “No Internet” icon, use the [`fake-offline-icon` branch](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon).
 
-> Want the opposite behavior—working Internet with an intentional “No Internet” taskbar icon? See the dedicated [`fake-offline-icon` branch](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/fake-offline-icon), including enable/restore scripts, automatic registry backup, and instructions.
-
-<a id="chinese"><a>
+<a id="chinese"></a>
 # Windows 10/11 网络图标修复工具
 
-![Windows](https://img.shields.io/badge/Windows-10/11-blue) ![状态](https://img.shields.io/badge/状态-可用-brightgreen) ![类型](https://img.shields.io/badge/类型-注册表修复-orange) ![许可](https://img.shields.io/badge/许可-MIT-green)
+适用于**实际可以上网，但任务栏显示灰色地球或“无 Internet 访问权限”**的情况。工具检查 Windows 网络连接状态指示器（NCSI）的 HTTP 探测地址，并修复相关注册表配置。它不能修复所有网络故障，也不会把“注册表写入成功”当成“图标已经恢复”。
 
-## 问题概述
-本仓库提供了一个解决方案，用于修复Windows 10系统中网络图标错误显示为"未连接"（灰色小地球）的问题，即使实际上可以正常访问互联网。**此问题主要在中国大陆地区出现。**
+## 使用方法
 
-## 快速使用
-> **注意**：此脚本会在执行过程中重启网络适配器，请确保执行前没有重要的网络传输任务正在进行。
+1. 下载最新的 [`modifyRegistryAndRestart.bat`](https://raw.githubusercontent.com/Ronchy2000/Windows-Network-Icon-Fix/refs/heads/main/modifyRegistryAndRestart.bat)，保存为 `.bat` 文件，也可以下载仓库 ZIP 后解压使用。不要保存 GitHub 网页或另存成 `.bat.txt`。
+2. 右键文件，选择 **以管理员身份运行**，允许 UAC 提示。窗口顶部应显示 **2.0.0**。
+3. 查看执行结果。提示“注册表修改并校验成功”后，重启电脑或手动重新连接网络，再观察图标。
 
-直接从[**Release**](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases)页面下载批处理文件：
-1. **以管理员身份**运行`modifyRegistryAndRestart.bat`
-2. 在"网络和Internet设置"中重启"Windows网络适配器" （如果不会的话，关闭计算机重启即可）
+仍然只需一个 BAT，不需要另外下载 PowerShell 脚本；使用 Windows 10/11 自带的 Windows PowerShell 5.1。**新版不再自动禁用网卡**，Wi-Fi、英文名称和改名后的网卡均无需修改脚本。
 
-## 工作原理
+[Release 页面](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases)中的附件需要维护者单独更新，不会随 main 分支代码自动变化。旧附件没有版本号和诊断日志；排查本次问题时请先使用上面的最新脚本。
 
-### 问题成因
-从Windows 10 1607版本开始，系统通过访问`http://www.msftconnecttest.com/connecttest.txt`来判断网络连接状态。正常情况下，访问该URL会返回文本"Microsoft Connect Test"，系统据此显示正常的网络连接图标。
+## 新版会做什么
 
-近期，由于中国大陆的网络运营商(ISP)对某些国外IP地址实施了限制，导致此连接测试失败，系统误判为网络未连接。
+- 检查当前进程是否有管理员权限，不再通过 `net session` 判断，避免 Server 服务停用时误判。
+- 显示并记录相关服务、网络连接状态、当前探测配置以及 `NoActiveProbe` 组策略。
+- 优先验证 `http://www.msftncsi.com/ncsi.txt` 是否返回完全匹配的 `Microsoft NCSI`；失败时尝试 `http://www.msftconnecttest.com/connecttest.txt`，预期内容为 `Microsoft Connect Test`。拒绝重定向和认证页等异常内容。
+- 只在候选地址通过检查后修改配置。两个地址都失败，或策略 `NoActiveProbe=1` 禁用主动探测时，明确说明原因并停止。
+- 修改前导出实际注册表备份，备份失败就停止。写入后逐项核对值和类型；写入或校验失败时尝试恢复原值，包括删除本次新增的值。
+- 成功、失败都会保留窗口。日志在启动 PowerShell 之前创建，即使 PowerShell 启动失败，也能留下错误信息。
 
-### 解决方案
-Windows 10 1607之前版本使用的URL是`http://www.msftconnecttest.com/ncsi.txt`，该URL目前仍然有效且未被ISP屏蔽。本工具通过修改注册表，将系统配置恢复为使用这个旧版URL。
+探测使用当前用户的网络环境，系统服务可能使用不同的代理或 IPv6 路径。因此，地址在脚本中可达仍不保证 NCSI 最终判断为在线。公司策略、DNS、代理/VPN、防火墙、网页认证、服务异常和系统缓存都可能影响图标；不能仅凭地区推断具体原因。
 
-## 技术细节
+## “闪一下就没了”怎么排查
 
-注册表修改内容：
-- 修改检测URL为`http://www.msftconnecttest.com/ncsi.txt`
-- `EnableActiveProbing`字段：
-  - 值为1：开启网络探测
-  - 值为0：关闭网络探测
+旧脚本存在以下问题：在当前工作目录写固定名称 `temp.reg`，没有检查创建和导入是否成功；管理员检查依赖 Server 服务；网卡名称写死为“以太网”，且未检查重新启用是否成功。前两项可能导致注册表根本没有修改，网卡名称问题则会让后续步骤失败。
 
-## 常见问题
+不过，旧源码的正常结束和已处理的错误分支都有 `pause`，**仅凭“一闪而过”不能确定唯一原因**。如果新版仍然闪退：
 
-### 此问题对系统有什么影响？
-- 网络图标显示异常（灰色小地球）
-- Microsoft Store和部分微软应用可能无法正常使用
-- 系统可能提示"无Internet访问权限"
+1. 在开始菜单搜索 **命令提示符**，以管理员身份打开，在窗口中执行下面的命令。将路径替换成实际文件路径，保留双引号。这会禁用 cmd 的 AutoRun，并在退出后保留窗口：
 
-### 使用此工具有风险吗？
-> 备份与恢复:
->打开文件 -> 网图标注册表(备份).png -> 修改注册表 -> 重启网络适配器
+   ```bat
+   cmd.exe /d /k ""C:\完整路径\modifyRegistryAndRestart.bat""
+   ```
 
-本工具仅修改Windows网络连接检测的URL配置，不会影响系统安全性或稳定性。如有顾虑，可以手动备份注册表后再使用。
+2. 打开 `%TEMP%\Windows-Network-Icon-Fix`，查找本次的 `diagnostic-*.log`。也可以按 `Win+R` 输入该目录。窗口会显示日志完整路径；如果用户切换了管理员账户运行，应以该窗口显示的路径为准。
+3. 反馈日志和窗口中的报错。如果没有新日志，说明尚未成功运行到日志初始化处，应检查下载文件内容、`.bat` 文件关联、TEMP 写权限，以及安全软件或组织策略是否拦截了 cmd/PowerShell。无需先反复重启电脑。
 
+退出码：`0` 表示注册表写入并校验成功，`1` 表示执行失败，`2` 表示被策略或探测结果阻止。**`0` 不表示已经确认任务栏图标恢复。**
 
-### 为什么我的系统突然出现这个问题？
-系统更新后可能会重置网络连接检测的设置。即使禁用了Windows Update，系统在某些情况下仍可能自动更新组件。
+## 注册表与恢复
+
+修改位置：
+
+```text
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet
+```
+
+修改七个值：`ActiveWebProbeHost`、`ActiveWebProbeHostV6`、`ActiveWebProbePath`、`ActiveWebProbePathV6`、`ActiveWebProbeContent`、`ActiveWebProbeContentV6` 和 DWORD 类型的 `EnableActiveProbing=1`。Host、Path、Content 按本次通过检查的地址成组写入。工具不覆盖组织的 `NoActiveProbe` 策略。
+
+每次修改前的备份为日志目录中的 `NCSI-backup-日期时间-唯一编号.reg`，具体路径会记录在日志中。需要恢复时，在管理员终端执行：
+
+```bat
+reg.exe import "C:\日志中显示的完整路径\NCSI-backup-....reg"
+```
+
+然后重启电脑或重新连接网络。`.reg` 导入是合并操作，能恢复备份中已有的值；原先不存在、修复时新增的值不会由手动导入自动删除。执行中失败触发的自动回滚会处理这些新增值。备份和日志位于临时目录，请在清理临时文件前另行保存。
+
+仓库中的 PNG 只是配置示例，**不是用户电脑的原始备份**。`网络连接.txt` 是旧版地址的手工配置片段，已修正域名多出的 `I`，不是完整 `.reg` 文件；优先使用带检测和备份的脚本。
+
+## 验证
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-NetworkIconFix.ps1
+```
+
+测试覆盖权限不足、组策略、探测失败/内容不符、备用地址、备份失败、部分写入失败、读取校验失败和回滚。GitHub Actions 使用 Windows PowerShell 5.1，额外检查真实 cmd 启动器（含中文、空格和特殊字符路径）及 `reg.exe` 的备份成功/失败路径。测试不修改实际 NCSI 配置；备份测试仅使用独立的临时 HKCU 项。macOS/Linux 可用 PowerShell 7 运行模拟测试，Windows 专有检查会跳过。这些检查不能代替 Windows 实机观察任务栏图标。
 
 ## 参考资料
-- [Windows 10网络图标显示问题解决方案][ref1]
-- [Windows网络连接检测机制分析][ref2]
 
-[release-link]: https://github.com/yourusername/repo-name/releases
-[ref1]: https://blog.csdn.net/Ronchy_2000/article/details/142069148
-[ref2]: https://blog.csdn.net/qq_45830323/article/details/129681354
+- [Windows 10 网络图标显示问题解决方案](https://blog.csdn.net/Ronchy_2000/article/details/142069148)
+- [Windows 网络连接检测机制分析](https://blog.csdn.net/qq_45830323/article/details/129681354)
 
 ---
-[🇨🇳 中文文档](#chinese) | [🇺🇸 English](#english)
 
-<a id="english"><a>
-# Windows 10 Network Icon Fix Tool
+<a id="english"></a>
+# Windows 10/11 Network Icon Fix
 
-![Windows](https://img.shields.io/badge/Windows-10/11-blue) ![状态](https://img.shields.io/badge/状态-可用-brightgreen) ![类型](https://img.shields.io/badge/类型-注册表修复-orange) ![许可](https://img.shields.io/badge/许可-MIT-green)
+For computers that **can access the Internet while Windows shows a gray globe or “No Internet”**. The tool checks NCSI HTTP probes and repairs their registry configuration. A successful registry update does not confirm that the taskbar icon has recovered.
 
-## Problem Overview
-This repository provides a solution for fixing the Windows 10 issue where the network icon incorrectly shows as "disconnected" (gray globe icon) even though you can successfully access the Internet. **This problem primarily occurs in mainland China.**
+## Usage
 
-## Quick Usage
-> **Note**: This script will restart your network adapter during execution. Please ensure no important network transfers are in progress before running it.
+1. Download the current [`modifyRegistryAndRestart.bat`](https://raw.githubusercontent.com/Ronchy2000/Windows-Network-Icon-Fix/refs/heads/main/modifyRegistryAndRestart.bat), or download and extract the repository ZIP. Save the actual BAT file, rather than the GitHub HTML page or a `.bat.txt` file.
+2. Right-click, choose **Run as administrator**, and approve UAC. The header should show **2.0.0**.
+3. Once the script reports a verified registry update, restart Windows or reconnect the network manually and check the icon.
 
-Download the batch file directly from the [**Release**](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases) page:
-1. Run `modifyRegistryAndRestart.bat` with administrator privileges
-2. Restart the "Windows network adapter" in "Network & Internet settings" (If you don't know how to do this, simply restart your computer)
+This is a single BAT using built-in Windows PowerShell 5.1. **It no longer disables network adapters automatically**, and works without assuming an adapter named “以太网”. Published [Release assets](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases) must be updated separately; old downloads do not gain fixes when main changes.
 
-## How It Works
+## Behavior
 
-### Cause of the Problem
-Since Windows 10 version 1607, the system determines network status by accessing `http://www.msftconnecttest.com/connecttest.txt`. Under normal circumstances, accessing this URL returns the text "Microsoft Connect Test", and the system displays the normal network connection icon accordingly.
+The script checks actual elevation, reports service/connection status and the `NoActiveProbe` policy, then tries these probes in order:
 
-Recently, due to restrictions implemented by mainland China's Internet Service Providers (ISPs) on certain foreign IP addresses, this connection test fails, causing the system to incorrectly identify the network as disconnected.
+| HTTP URL | Required response body |
+| --- | --- |
+| `http://www.msftncsi.com/ncsi.txt` | `Microsoft NCSI` |
+| `http://www.msftconnecttest.com/connecttest.txt` | `Microsoft Connect Test` |
 
-### Solution
-Windows 10 versions prior to 1607 used the URL `http://www.msftconnecttest.com/ncsi.txt`, which is still effective and not blocked by ISPs. This tool modifies the registry to restore the system configuration to use this older URL.
+Redirects and unexpected content are rejected. If neither probe passes, or `NoActiveProbe=1` disables active probing, the script stops without changing the registry. Otherwise, it exports a backup before writing, verifies all seven values and their types, and attempts rollback on write/verification failure. It leaves the window open and saves a persistent log, including PowerShell startup errors.
 
-## Technical Details
+Probes run in the current user's network environment. Windows services may use different proxy or IPv6 paths. DNS, VPN/proxy settings, captive portals, firewalls, policies, service problems and cached network state can still prevent the icon from recovering.
 
-Registry modifications:
-- Changes the detection URL to `http://www.msftconnecttest.com/ncsi.txt`
-- `EnableActiveProbing` field:
-  - Value 1: Enable network probing
-  - Value 0: Disable network probing
+## If the window immediately closes
 
-## Frequently Asked Questions
+The old script used a fixed `temp.reg` in the working directory, ignored registry import failures, relied on `net session` for elevation checks, and assumed a specific adapter name. Its normal and handled error paths already included `pause`, so a flashing window alone does not establish the cause.
 
-### How does this issue affect my system?
-- Abnormal network icon display (gray globe)
-- Microsoft Store and some Microsoft applications may not function properly
-- System may indicate "No Internet access"
+Open **Command Prompt as administrator** and run this command with the actual file path. It disables cmd AutoRun and keeps the console open:
 
-### Is there any risk in using this tool?
-> Backup and Recovery:
-> Open file -> Network Icon Registry (Backup).png -> Modify registry -> Restart network adapter
+```bat
+cmd.exe /d /k ""C:\full path\modifyRegistryAndRestart.bat""
+```
 
-This tool only modifies the URL configuration for Windows network connection detection and will not affect system security or stability. If concerned, you can manually backup the registry before using it.
+Find the latest `diagnostic-*.log` in `%TEMP%\Windows-Network-Icon-Fix` and include it with the reported error. Use the log path displayed by the script if it runs under a different administrator account. If there is no new log, check the downloaded file, BAT association, TEMP permissions, and whether security software or organization policy prevented cmd/PowerShell from starting.
 
-### Why did this problem suddenly appear on my system?
-System updates may reset network connection detection settings. Even if Windows Update is disabled, the system may still automatically update components under certain circumstances.
+Exit codes: `0` = registry update verified, `1` = execution failure, `2` = blocked by policy or probe results. Code `0` does not confirm taskbar recovery.
 
-## References
-- [Windows 10 Network Icon Display Problem Solution][ref1]
-- [Windows Network Connection Detection Mechanism Analysis][ref2]
+## Backup and restore
 
-[release-link]: https://github.com/yourusername/repo-name/releases
-[ref1]: https://blog.csdn.net/Ronchy_2000/article/details/142069148
-[ref2]: https://blog.csdn.net/qq_45830323/article/details/129681354
+The script updates the six `ActiveWebProbe*` string values and DWORD `EnableActiveProbing=1` under:
+
+```text
+HKLM\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet
+```
+
+It does not override organization policy. Each run that changes settings first creates a unique `NCSI-backup-*.reg` in the log directory. To restore, run this in an administrator terminal using the exact path from the log, then reconnect or restart:
+
+```bat
+reg.exe import "C:\full path\NCSI-backup-....reg"
+```
+
+Manual `.reg` import merges existing backup values; it does not remove values that were absent before the repair. Automatic rollback during a failed repair also removes newly created values. Copy backups elsewhere before clearing temporary files. The repository PNG is an example, not a backup of your computer, and `网络连接.txt` is only a manual configuration fragment.
+
+## Validation
+
+Run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tests\Test-NetworkIconFix.ps1`. The test suite simulates elevation, policy, HTTP responses, backup failures, partial writes, readback failures and rollback. Windows CI additionally exercises the actual BAT launcher with complex paths and `reg.exe` export using a temporary HKCU key. It does not modify live NCSI settings. PowerShell 7 on macOS/Linux runs the simulations and skips Windows-only checks. Testing actual icon recovery still requires Windows.
