@@ -1,5 +1,9 @@
 # Windows 10/11：让联网 Wi-Fi 显示“无 Internet”图标
 
+**[点击这里进入下载页面：故意显示灰色地球图标版 v2.0.0](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases/tag/fake-offline-icon-v2.0.0)**
+
+不熟悉 GitHub 的用户：打开上面的链接，在页面下方的 **Assets（附件）** 中点击 **`Windows-Fake-Offline-Icon-v2.0.0.zip`** 下载。下载后右键 ZIP，选择“全部解压缩”，文件夹里有“显示灰色地球图标”和“恢复正常联网图标”两个 BAT。无需下载源码或安装开发工具。
+
 > 本分支专门实现“实际可以上网，但任务栏故意显示灰色小地球/无 Internet”的需求。若你是要**修复**错误的灰色地球图标，请返回 [`main` 分支](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/tree/main)。
 
 适用场景：运行 Windows10 / Windows 11 的电脑。该功能依赖 Windows 自带的 NCSI（网络连接状态指示器），与电脑品牌和无线网卡型号无关。
@@ -19,7 +23,7 @@
 
 ### 一、切换为“表面未联网”
 
-1. 下载本分支全部文件，或至少把两个 `.bat` 文件放在同一个可写文件夹中。
+1. **[点击进入 Release 下载页面](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases/tag/fake-offline-icon-v2.0.0)**，展开 **Assets（附件）**，点击 **`Windows-Fake-Offline-Icon-v2.0.0.zip`**。不要选择 `Source code`。右键下载好的 ZIP，选择“全部解压缩”，将两个 BAT 保留在同一个可写文件夹中，不要直接在压缩包内运行。
 2. 右键 [`显示灰色地球图标.bat`](./显示灰色地球图标.bat)，选择“以管理员身份运行”。
 3. 看到“三项注册表值已修改并校验”后，正常重启电脑。
 4. 重启后连接 Wi-Fi，观察任务栏。写入成功不等于已确认图标变化；若仍显示联网，请按下文收集日志。
@@ -41,7 +45,7 @@
 
 新版同时修正了恢复脚本忽略删除失败、备份损坏时直接回退等问题。启用和恢复都会读取校验；中途失败会尝试恢复本次操作前的三项值，并保留原始备份指针以便重试。
 
-1. 确认使用本分支最新 **2.0.0** 脚本。GitHub Release 附件需要单独更新，不会随分支代码自动变化。
+1. 确认使用本分支 [Release 页面](https://github.com/Ronchy2000/Windows-Network-Icon-Fix/releases/tag/fake-offline-icon-v2.0.0)提供的 **2.0.0** 下载包，不要混用旧脚本或 `main` 分支的修复工具。
 2. 脚本成功或失败都会保留窗口，并在 `%TEMP%\Windows-Network-Icon-Fix` 写入 `diagnostic-*.log`。以窗口中显示的完整路径为准，失败时保留日志和 `backups`。
 3. 若仍闪退，在管理员命令提示符中执行以下命令，替换为实际路径，保留双引号。`/d` 禁用 cmd AutoRun，`/k` 保留窗口：
 
