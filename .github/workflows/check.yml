@@ -1,0 +1,16 @@
+name: Check Windows repair script
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Windows PowerShell 5.1, launcher and failure paths
+        shell: powershell
+        run: .\tests\Test-NetworkIconFix.ps1
+      - name: Verify offline mode backup, rollback and launchers
+        shell: powershell
+        run: .\tests\Test-OfflineIconMode.ps1
